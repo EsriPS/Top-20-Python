@@ -1,31 +1,29 @@
-#!/usr/bin/env python3
-# thanks
+from server import Server
+from api import api
+from app import web_app
 import multiprocessing
+from desktop import desktop
 
+# Making a web app from our API
+web_app(api)
 
-from nicegui import ui
-from server import UvicornServer
-from app_webview import start_window
+if __name__ == '__main__':
 
-from frontend import app
-
-# Running NiceGUI
-ui.run_with(app)
-
-if __name__ == "__main__":
+    # Starting a new process
     conn_recv, conn_send = multiprocessing.Pipe()
+    
+    # Starting desktop window
+    deskop_window = multiprocessing.Process(target=desktop, kwargs={"conn_send": conn_send, "context": "show"})
+    deskop_window.start()
 
-    windowsp = multiprocessing.Process(target=start_window, kwargs={"conn_send": conn_send})
-    windowsp.start()
+    instance = Server(app="main:api")
+    instance.run()
 
-    instance = UvicornServer(app="main:app")
-    instance.start()
-
-    window_status = ""
-    while "closed" not in window_status:
+    window_status = ''
+    while 'closed' not in window_status:
         # get a unit of work
         window_status = conn_recv.recv()
         # report
-        print(f"Window {window_status}", flush=True)
+        print(f'got {window_status}', flush=True)
 
     instance.stop()
