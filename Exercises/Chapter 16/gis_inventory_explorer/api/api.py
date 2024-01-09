@@ -1,12 +1,11 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-
+from typing import Union, Annotated
 from sqlalchemy.orm import Session
-
 
 from schemas import Token, UserIn, UserOut
 from database import get_db
-from security import authenticate_user, create_access_token, get_password_hash
+from security import authenticate_user, create_access_token, get_password_hash, get_current_active_user
 from models import User
 
 # FastAPI app
@@ -35,8 +34,19 @@ async def login_for_access_token(
 @api.post("/users/", response_model=UserOut)
 async def create_user(user: UserIn, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
-    db_user = User(email=user.email, hashed_password=hashed_password)
+    db_user = User(username=user.username, email=user.email, hashed_password=hashed_password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
+
+@api.get("/users/me/", response_model=UserOut)  # Update the response_model annotation to use UserOut instead of User
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    """
+    Retrieve the current user.
+    """
+    return current_user
+
+

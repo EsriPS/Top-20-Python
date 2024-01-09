@@ -1,19 +1,19 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Union
 
 class UserIn(BaseModel):
+    username: str
     email: str
     password: str
 
 
 class UserOut(BaseModel):
-    email: str
+    username: str
     is_active: bool
 
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
-
+    username: Union[str, None] = None
 
 class Token(BaseModel):
     access_token: str
