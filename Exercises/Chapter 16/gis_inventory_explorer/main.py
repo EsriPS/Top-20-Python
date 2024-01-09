@@ -1,11 +1,11 @@
 from server import Server
-from api import api
-from app import web_app
+from api.main import app
+from app.app import web_app
 import multiprocessing
-from desktop import desktop
+from app.desktop import desktop
 
 # Making a web app from our API
-web_app(api)
+web_app(app)
 
 if __name__ == '__main__':
 
@@ -13,10 +13,10 @@ if __name__ == '__main__':
     conn_recv, conn_send = multiprocessing.Pipe()
     
     # Starting desktop window
-    deskop_window = multiprocessing.Process(target=desktop, kwargs={"conn_send": conn_send, "context": "show"})
+    deskop_window = multiprocessing.Process(target=desktop, kwargs={"conn_send": conn_send, "context": ""})
     deskop_window.start()
 
-    instance = Server(app="main:api")
+    instance = Server(app="main:app")
     instance.run()
 
     window_status = ''
