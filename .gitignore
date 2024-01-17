@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyz
+*.pyw
+*.pyi
+*.pycachefile
+
+# Virtual Environment
+venv/
+env/
+env.bak/
+env1/
+env2/
+env3/
+env4/
+env5/
+pyenv/
+.python-version
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+logs/
+log.txt
+
+# Build
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+*.pyinstaller/
+*.spec
+
+# Compiled files
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Miscellaneous
+*.bak
+*.swp
+*.tmp
+*.tmp.*
+*~
+*.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+*.pydevproject
+*.ipynb_checkpoints/
+.ipynb_checkpoints/
+*.sage.py
+*.sage.py~
+
+
+# Ignore pipenv virtual environment
+/.venv
+/.conda
