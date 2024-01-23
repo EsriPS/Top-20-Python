@@ -1,6 +1,0 @@
-[server]
-host = "localhost"
-port = 8080
-
-[api]
-database_url = "sqlite:///./test.db"

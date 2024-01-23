@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from sqlalchemy import JSON, TIMESTAMP, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKeyConstraint
-from sqlalchemy.types import LargeBinary, String
+from sqlalchemy.types import LargeBinary, String, Integer
 
 type_annotation_map = {
     JSON: JSON,
@@ -17,15 +17,15 @@ type_annotation_map = {
 }
 
 
-class Admin(DeclarativeBase):
+class InventoryDatabase(DeclarativeBase):
     type_annotation_map = type_annotation_map
 
 
-class Portals(Admin):
-    __tablename__ = "settings"
+class Portals(InventoryDatabase):
+    __tablename__ = "portals"
 
-    url: Mapped[str] = mapped_column(String(256), primary_key=True)
-    token: Mapped[bytes] = mapped_column(LargeBinary(), nullable=False)
-    expires: Mapped[datetime.datetime] = mapped_column(
-        default=datetime.datetime.now() + datetime.timedelta(minutes=30), nullable=False
+    url: Mapped[str] = mapped_column(String(), primary_key=True)
+    token: Mapped[bytes] = mapped_column(String(), nullable=True)
+    expires: Mapped[str] = mapped_column(
+        Integer, nullable=True
     )
