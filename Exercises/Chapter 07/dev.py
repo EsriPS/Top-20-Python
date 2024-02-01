@@ -1,78 +1,94 @@
+def extract_to_df(url):
+    '''
+    TODO - write docstring
+    '''
 
-# import pandas
-# import requests
-# import json
-# import datetime
+    # Request data from the API
+    response = requests.get(url)
 
+    # Convert the response to JSON
+    response_text = response.text
 
+    # Convert JSON to a Python data types (lists/dictionaries)
+    results_list = json.loads(response_text)
 
-# url = "https://data.sfgov.org/resource/vw6y-z8j6.json"
-# fields = "$select=service_request_id,requested_datetime,status_notes,lat,long,neighborhoods_sffind_boundaries,source,supervisor_district,media_url,point"
-# where = "$where=status_description='Open' and requested_datetime > '2024-01-20T00:00:00.000000'"
-# limit = "$limit=1000"
-# order = "$order=requested_datetime DESC"
+    # Convert the Python lists/dictionaries to a Pandas DataFrame
+    df = pandas.DataFrame(results_list)
 
-
-# response = requests.get(url+"?"+fields+"&"+where#+"&"+limit+"&"+order
-#                         )
-
-# json_response = json.loads(response.text)
-
-# print(len(json_response))
-
-# df = pandas.DataFrame(json_response)
+    # Return the DataFrame
+    return df
 
 
-
-
-
-# import datetime
-
-# # Get the current date and time
-# now = datetime.datetime.now()
-
-# # Subtract one day from the current date
-# yesterday = now - datetime.timedelta(days=1)
-
-# # Set the time to midnight
-# midnight = datetime.time()
-
-# # Combine the date and time
-# timestamp = datetime.datetime.combine(yesterday, midnight)
-
-# # Convert the timestamp to a floating point number
-# floating_timestamp = timestamp.strftime('%Y-%m-%dT%H:%M:%S.%f') 
-
-# # Print the floating timestamp
-# print(floating_timestamp)
-
-
-# from arcgis.geometry import Geometry, Point, Polygon, Polyline
-
-# def __geomToStringArray(geometries, returnType="str"):
-#     """function to convert the geomtries to strings"""
-#     listGeoms = []
-#     for g in geometries:
-
-#         if not isinstance(g, Geometry):
-#             g = Geometry(g)
-#         if isinstance(g, Point):
-#             listGeoms.append(g)
-#         elif isinstance(g, Polygon):
-#             listGeoms.append(g)
-#         elif isinstance(g, Polyline):
-#             listGeoms.append({"paths": g["paths"]})
-#     if returnType == "str":
-#         return json.dumps(listGeoms)
-#     elif returnType == "list":
-#         return listGeoms
-#     else:
-#         return json.dumps(listGeoms)
-    
-
+import pandas
+import requests
+import json
+import datetime
 import arcgis
-gis = arcgis.gis.GIS()
-geoms = [arcgis.geometry.Point({'x':15.877,'y':14.917,'spatialReference':{'wkid':4326}}),
-    arcgis.geometry.Point({'x':15.859,'y':14.909,'spatialReference':{'wkid':4326}}),
-    arcgis.geometry.Point({'x':15.957,'y':15.412,'spatialReference':{'wkid':4326}})]
-arcgis.geometry.buffer(geoms,in_sr=4326,distances=[500,500,500],buffer_sr=3857,unit='esriSRUnit_Foot')
+
+
+now = datetime.datetime.now()
+yesterday = now - datetime.timedelta(days=1)
+
+# Set the time to midnight
+midnight = datetime.time()
+
+# Combine the date and time
+yesterday_midnight = datetime.datetime.combine(yesterday, midnight)
+formatted_yesterday = yesterday_midnight.strftime('%Y-%m-%dT%H:%M:%S.%f') 
+where = f"$where=status_description='Open' and requested_datetime > '{formatted_yesterday}'"
+
+field_list = [
+    'service_request_id',
+    'requested_datetime',
+    'closed_date',
+    'status_notes',
+    'lat',
+    'long',
+    'neighborhoods_sffind_boundaries',
+    'source',
+    'supervisor_district',
+    'media_url',
+    'point'
+]
+
+fields = "$select=" + ",".join(field_list)
+
+url = "https://data.sfgov.org/resource/vw6y-z8j6.json"
+full_url = url+"?"+fields+"&"+where
+
+
+df = extract_to_df(full_url)
+
+
+# import arcpy
+# import arcgis
+
+# with arcpy.EnvManager(workspace=r"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 06\Tutorial_06_02.gdb"):
+#     print(arcpy.ListFeatureClasses())
+
+
+
+
+df_neighborhood = df.groupby("neighborhoods_sffind_boundaries").agg(
+    {
+        "service_request_id": "count"
+    }
+)
+
+
+sedf_neighborhoods = pandas.DataFrame.spatial.from_featureclass(
+    "../Chapter 06/Tutorial_06_02.gdb/SF_Find_Neighborhoods"
+)
+
+
+
+sedf_merge = sedf_neighborhoods.merge(
+    df_neighborhood, 
+    how = 'inner', 
+    left_on = 'name', 
+    right_on = 'neighborhoods_sffind_boundaries'
+)
+
+sedf_merge.rename(
+    columns = {"service_request_id": "count"},
+)
