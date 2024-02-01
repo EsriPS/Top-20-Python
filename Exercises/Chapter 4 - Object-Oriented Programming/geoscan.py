@@ -1,10 +1,8 @@
 import csv
 import os
 from dataclasses import dataclass
-from functools import cached_property
 
 import arcpy
-import requests
 
 SHAPEFILE_EXTS = [
     ".shp",
@@ -355,7 +353,8 @@ class GeoScanner(DirectoryScanner):
             )
         datasets = []
 
-        for dataset in datasets:
+        # https://pylint.readthedocs.io/en/latest/user_guide/messages/warning/modified-iterating-list.html
+        for dataset in datasets.copy():
             datasets.append(
                 Dataset(
                     name=dataset,

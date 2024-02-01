@@ -5,8 +5,6 @@ import arcgis_user_login_streamlit_component
 import datetime
 import pathlib
 
-import datetime
-
 
 def convert_esri_time(unix_time):
     """
@@ -126,7 +124,7 @@ for portal in portals:
     if token_modal.is_open():
         with token_modal.container():
             new_token = (
-                arcgis_user_login_streamlit_component.arcgis_user_login_streamlit_component()
+                arcgis_user_login_streamlit_component.arcgis_user_login_streamlit_component(my_input_value=portal["url"])
             )
         if new_token["token"]:
             Database().add_portal_token(
