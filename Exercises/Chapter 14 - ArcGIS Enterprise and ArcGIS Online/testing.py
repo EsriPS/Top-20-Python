@@ -1,22 +1,9 @@
-from gis_inventory import Portal, MashUp
+from gis_inventory import Inventory
 
 # Create a new Portal object
 
-agol = Portal(profile="dyaw_Arch", url="https://www.arcgis.com")
+agol = Inventory(profile="dyaw_Arch", url="https://www.arcgis.com")
 
-z = agol.search(searching_for = "roles")
-x = agol.search(searching_for="users")
+x = agol.items_search(zip_code="19046")
 
-ms = MashUp(portals=[agol])
-
-x = ms.search()
-
-x = ms.search()
-
-results = agol.search(limit=124)
-print(len(results))
-results = agol.search()
-print(len(results))
-results = agol.search(start=200)
-print(len(results))
-print(agol.token)
+print(x)
