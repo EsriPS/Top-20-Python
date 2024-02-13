@@ -1,5 +1,66 @@
 import arcpy
 
+
+fc = r"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 02 - ArcPy Basics\Chapter 02 Files\Chapter 02 - Working with Maps.gdb\Highways_intersect"
+
+arcpy.Exists(fc)
+
+arcpy.management.GetCount(fc)[0]
+
+
+fields = arcpy.ListFields(fc)
+
+for field in fields:
+    print(field.name, field.type)
+
+all_hwys = []
+
+
+
+
+# note the context manager
+with arcpy.da.SearchCursor(fc, ['HWY_NUM']) as cursor:
+    for row in cursor:
+        all_hwys.append(row[0])
+
+
+len(all_hwys)
+
+len(list(set(all_hwys)))
+
+for hwa in list(set(all_hwys)):
+    try:
+        int(hwa)
+    except:
+        print(hwa)
+
+arcpy.management.AddField(fc, 'HWY_NUM_CLEAN', 'TEXT', field_length=10)
+
+
+with arcpy.da.UpdateCursor(fc, ['HWY_NUM', 'HWY_NUM_CLEAN']) as cursor:
+    for row in cursor:
+        try:
+            row[1] = int(row[0].strip())
+        except Exception as e:
+            print(row[0], e)
+
+        cursor.updateRow(row)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import arcpy
+
 # Load the project
 # project_path = r"C:\Users\dav11274\Desktop\github\Workshop_Beginner_3\Beginner_Week_3.aprx"
 project_path = r".\Chapter 02 Files\Chapter 02 - Working with Maps.aprx"
@@ -49,6 +110,10 @@ map_frame.camera.setExtent(county_extent)
 
 layout.exportToPDF('./{}.pdf'.format(county))
 
+# get hte layer in a map frame called 'Counties'
+# for layer in layout.mapSeries.mapFrame.map.listLayers():
+#     if layer.name == 'Counties':
+#         counties_layer = layer
 
 
 
