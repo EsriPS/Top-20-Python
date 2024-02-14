@@ -68,3 +68,4 @@ $RECYCLE.BIN/
 # Ignore pipenv virtual environment
 /.venv
 /.conda
+/.conda*

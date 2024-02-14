@@ -1,4 +1,0 @@
-[server]
-sslCertFile = '.streamlit/example.com+5.pem'
-sslKeyFile = '.streamlit/example.com+5-key.pem'
-port = 8443
