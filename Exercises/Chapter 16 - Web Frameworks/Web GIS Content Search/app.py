@@ -1,23 +1,31 @@
 from flask import Flask, session, render_template, redirect, url_for, request
-import time
 from arcgis.gis import GIS
 import secrets
 import urllib.parse
 from flask_bootstrap import Bootstrap5
-from datetime import datetime, date
+from datetime import datetime
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, Length, Optional, InputRequired
+from wtforms.validators import DataRequired, Length, Optional
 from flask_wtf.csrf import CSRFProtect
-from wtforms.fields import DateTimeField, DateField
+from wtforms.fields import DateField
 from gis_inventory import items_search
 from wtforms import StringField, BooleanField, Field
 from wtforms.fields import DateTimeLocalField, DateField
 from wtforms.widgets import DateTimeInput
+import os
+import sys
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 
 app = Flask(
     __name__,
-    template_folder=r"C:\Users\dan11332\Development\Top-20-Python\Exercises\Chapter 16 - Web Frameworks\flask test\templates",
+    template_folder=resource_path("templates")
 )
 # Registering the extensions
 bootstrap = Bootstrap5(app)
@@ -48,6 +56,7 @@ class SearchForm(FlaskForm):
 
 app.secret_key = secrets.token_urlsafe(16)
 app.config.from_object(__name__)
+
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -140,11 +149,13 @@ def get_token(message: str = None):
         current_portal=session.get("url", None),
     )
 
+
 @app.route("/logout")
 def logout():
     session.pop("token", None)
     session.pop("url", None)
     return redirect(url_for("get_token", message="You have been logged out."))
+
 
 @app.route("/api/data")
 def data():
@@ -190,3 +201,6 @@ def data():
     return {
         "data": results["results"],
     }
+    
+if __name__ == "__main__":
+    app.run()
