@@ -4,6 +4,7 @@
     {{ bootstrap.load_css() }} {% block head %} {% endblock %}
     <title>{% block title %}{% endblock %}</title>
   </head>
+  {% block styles %}{% endblock %} 
   <body>
     <nav class="navbar navbar bg-primary navbar-expand-lg bg-body-tertiary">
       <div class="container-fluid">
@@ -33,5 +34,6 @@
       </div>
     </nav>
     {% block content %}{% endblock %} {{ bootstrap.load_js() }}
+    {% block scripts %}{% endblock %}
   </body>
 </html>

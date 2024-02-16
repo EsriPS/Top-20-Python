@@ -10,9 +10,8 @@ from wtforms.validators import DataRequired, Length, Optional
 from flask_wtf.csrf import CSRFProtect
 from wtforms.fields import DateField
 from gis_inventory import items_search
-from wtforms import StringField, BooleanField, Field
-from wtforms.fields import DateTimeLocalField, DateField
-from wtforms.widgets import DateTimeInput
+from wtforms import StringField
+from wtforms.fields import DateField
 import os
 import sys
 
@@ -25,7 +24,8 @@ def resource_path(relative_path):
 
 app = Flask(
     __name__,
-    template_folder=resource_path("templates")
+    template_folder=resource_path("templates"),
+    static_folder=resource_path("static"),
 )
 # Registering the extensions
 bootstrap = Bootstrap5(app)
@@ -201,6 +201,7 @@ def data():
     return {
         "data": results["results"],
     }
-    
+
+
 if __name__ == "__main__":
     app.run()
