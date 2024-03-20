@@ -18,9 +18,9 @@ def gp_logic(start, end):
     try:
         print(f'GP logic for {start} to {end} complete')
         time.sleep(10)
-        # with open(os.path.join(r'C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 08 - Concurrency and Parallelism',
-        #                     f'output_{start}_{end}.txt'), 'w') as f:
-        #     f.write(f'GP logic for {start} to {end} complete')
+        with open(os.path.join(r'C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 08 - Concurrency and Parallelism',
+                            f'output_{start}_{end}.txt'), 'w') as f:
+            f.write(f'GP logic for {start} to {end} complete')
     except Exception as e:
         return -1
     # return (start, end)
@@ -34,7 +34,9 @@ process_count = 10
 
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
-with ProcessPoolExecutor(max_workers=process_count, mp_context=multiprocessing.get_context('fork')) as executor:
+with ProcessPoolExecutor(max_workers=process_count
+                        #  , mp_context=multiprocessing.get_context('fork')
+                         ) as executor:
     futures_list = []
     for i in range(0,5):
         futures_list.append(executor.submit(gp_logic, i, i))
