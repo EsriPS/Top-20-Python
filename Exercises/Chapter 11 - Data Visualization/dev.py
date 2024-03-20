@@ -21,6 +21,8 @@ field_aliases = {f['name']: f['alias']
 
 df_california = df_california.rename(columns=field_aliases)
 
+df_california['Name'].plot()
+
 df_california.plot(
     kind='bar', 
     x='Name', 
@@ -83,10 +85,12 @@ import seaborn as sns
 sns.set_style('whitegrid')
 
 
-ax = sns.barplot(x=df_california['Name'], y=df_california['Total Housing Units'])
-ax.set_xticklabels(df_california['Name'],rotation=90)
+ax = sns.barplot(x=df_california['Name'][0:10], 
+                 y=df_california['Total Housing Units'][0:10],
+                 palette='viridis')
+ax.set_xticklabels(df_california['Name'][0:10],rotation=90)
 
-
+sns.scatterplot(x='Total Housing Units', y='Total Population', data=df_california)
 
 
 sns.catplot?
