@@ -1,8 +1,10 @@
 
 
-import multiprocessing
 import time
 import os
+import arcpy
+import multiprocessing
+from zipfile import ZipFile
 
 # print(multiprocessing.cpu_count())
 
@@ -11,39 +13,84 @@ import os
 # merged_results = manager.list()
 # process_list = []
 
+input_fgdb = r"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 03 - ArcPy Basics\Chapter 03 Files\Chapter 02 - Working with Maps.gdb"
+input_fc_name = "Highways_Intersect"
+
+input_fc = os.path.join(input_fgdb, input_fc_name)
+
+output_folder = r"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 10 - Concurrency and Parallelism"
 
 
-def gp_logic(start, end):
+
+counties = [r[0] for r in arcpy.da.SearchCursor(os.path.join(input_fgdb, input_fc), ['NAMELSAD'])]
+counties = list(set(counties))
+# len(counties)
+
+# arcpy.env.overwriteOutput = True
+
+# county = counties[0]
+# fc_name = county.replace(' ', '_') + '_Highways'
+
+# fgdb = arcpy.CreateFileGDB_management(output_folder, f'{county}_Output.gdb')
+# output_fc = arcpy.conversion.ExportFeatures(
+#     in_features = os.path.join(input_fgdb, input_fc),
+#     out_features = os.path.join(fgdb[0], fc_name),
+#     where_clause = f"NAMELSAD = '{county}'"
+# )
+
+# arcpy.management.GetCount(output_fc)[0]
+
+
+
+def zipFGDB(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if '.lock' not in file:
+                ziph.write(os.path.join(root, file), 
+                           os.path.relpath(os.path.join(root, file), 
+                                           os.path.join(path, '..')))
+
+# with ZipFile(os.path.join(output_folder, f'{county}_Output.zip'), 'w') as ziph:
+#     zipFGDB(fgdb[0], ziph)
+
+def gp_logic(county, input_fc, output_folder):
     # merged_results.append((start, end))
     try:
-        print(f'GP logic for {start} to {end} complete')
-        time.sleep(10)
-        with open(os.path.join(r'C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 08 - Concurrency and Parallelism',
-                            f'output_{start}_{end}.txt'), 'w') as f:
-            f.write(f'GP logic for {start} to {end} complete')
+        fc_name = county.replace(' ', '_') + '_Highways'
+
+        fgdb = arcpy.CreateFileGDB_management(output_folder, f'{county}_Output.gdb')
+        output_fc = arcpy.conversion.ExportFeatures(
+            in_features = input_fc,
+            out_features = os.path.join(fgdb[0], fc_name),
+            where_clause = f"NAMELSAD = '{county}'"
+        )
+        with ZipFile(os.path.join(output_folder, f'{county} Output.zip'), 'w') as ziph:
+            zipFGDB(fgdb[0], ziph)
+
+        arcpy.management.Delete(fgdb[0])
     except Exception as e:
         return -1
     # return (start, end)
 
 
+# use cpu count - explain why to do n-1
+process_count = multiprocessing.cpu_count() - 1
 
-process_count = 10
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
-from concurrent.futures import ProcessPoolExecutor, as_completed
+    from concurrent.futures import ProcessPoolExecutor, as_completed
 
-with ProcessPoolExecutor(max_workers=process_count
-                        #  , mp_context=multiprocessing.get_context('fork')
-                         ) as executor:
-    futures_list = []
-    for i in range(0,5):
-        futures_list.append(executor.submit(gp_logic, i, i))
+    with ProcessPoolExecutor(max_workers=process_count) as executor:
+        futures_list = []
+        for county in counties:
+            futures_list.append(executor.submit(gp_logic, county, input_fc, output_folder))
 
-    print(len(futures_list))
-    for future in as_completed(futures_list):
-        print(future.result())
+        print(len(futures_list))
+        for future in as_completed(futures_list):
+            print(future.result())
 
 
 
