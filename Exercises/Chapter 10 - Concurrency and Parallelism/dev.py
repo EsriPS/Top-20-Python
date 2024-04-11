@@ -43,6 +43,16 @@ counties = list(set(counties))
 
 
 def zipFGDB(path, ziph):
+    """
+    Compresses the contents of a directory into a zip file, excluding any files with the '.lock' extension.
+
+    Args:
+        path (str): The path to the directory to be compressed.
+        ziph (zipfile.ZipFile): The zipfile handle to write the compressed contents to.
+
+    Returns:
+        None
+    """
     # ziph is zipfile handle
     for root, dirs, files in os.walk(path):
         for file in files:
