@@ -1,0 +1,10 @@
+title: Web GIS Content Search
+author: Gee Eyeess
+logo: support_files/geoninjas.png
+
+sphinx:
+    extra_extensions: [
+            "sphinx.ext.autodoc",
+            "sphinx.ext.viewcode",
+            "sphinx.ext.napoleon",
+        ] 

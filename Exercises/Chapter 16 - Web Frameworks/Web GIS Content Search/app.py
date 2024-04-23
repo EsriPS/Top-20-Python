@@ -1,19 +1,19 @@
-from flask import Flask, session, render_template, redirect, url_for, request
-from arcgis.gis import GIS
-import secrets
-import urllib.parse
-from flask_bootstrap import Bootstrap5
-from datetime import datetime
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, Length, Optional
-from flask_wtf.csrf import CSRFProtect
-from wtforms.fields import DateField
-from gis_inventory import items_search
-from wtforms import StringField
-from wtforms.fields import DateField
 import os
 import sys
+import urllib.parse
+import secrets
+from datetime import datetime
+from arcgis.gis import GIS
+
+from flask import Flask, session, render_template, redirect, url_for, request
+from flask_bootstrap import Bootstrap5
+from flask_wtf import FlaskForm
+from flask_wtf.csrf import CSRFProtect
+from wtforms.fields import DateField
+from wtforms import StringField, SubmitField, PasswordField
+from wtforms.validators import DataRequired, Length, Optional
+
+from gis_inventory import items_search
 
 
 def resource_path(relative_path):
@@ -27,9 +27,13 @@ app = Flask(
     template_folder=resource_path("templates"),
     static_folder=resource_path("static"),
 )
+
 # Registering the extensions
 bootstrap = Bootstrap5(app)
 csrf = CSRFProtect(app)
+
+app.secret_key = secrets.token_urlsafe(16)
+app.config.from_object(__name__)
 
 
 class TokenForm(FlaskForm):
@@ -54,12 +58,30 @@ class SearchForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
-app.secret_key = secrets.token_urlsafe(16)
-app.config.from_object(__name__)
-
-
 @app.route("/", methods=["GET", "POST"])
 def index():
+    """
+    Renders the index page of the web application.
+
+    If the user is not authenticated, it redirects to the "get_token" route.
+    The function handles both GET and POST requests.
+
+    GET Request:
+    - Repopulates the form from the previous search, if any.
+    - Parses the query string parameters and converts date strings to datetime objects.
+    - Renders the index.html template with the query string, search form, search query, and current portal.
+
+    POST Request:
+    - Validates the search form.
+    - Constructs the search query parameters from the form data.
+    - Redirects to the index route with the updated query string.
+
+    Returns:
+    - If the request is a GET request, it returns the rendered index.html template.
+    - If the request is a POST request, it redirects to the index route with the updated query string.
+    """
+
+    # Check if the user is authenticated
     if "token" not in session:
         return redirect(url_for("get_token"))
 
@@ -89,10 +111,13 @@ def index():
             unparsed_query["modified_to"], "%Y-%m-%d"
         )
 
+    # Create the search form with default values
     search_form = SearchForm(**unparsed_query)
 
+    # Handle the POST request
     if search_form.validate_on_submit():
 
+        # Construct the search query parameters
         search_query_params = {
             "owner": search_form.owner.data,
             "group": search_form.group.data,
@@ -105,6 +130,7 @@ def index():
             "output_path": search_form.output_path.data,
         }
 
+        # Encode the search query parameters
         search_query = urllib.parse.urlencode(
             {
                 key: value
@@ -112,6 +138,8 @@ def index():
                 if value is not None
             }
         )
+
+        # Redirect to the index route with the updated query string
         return redirect(
             url_for(
                 "index",
@@ -131,9 +159,24 @@ def index():
 
 @app.route("/get_token", methods=["GET", "POST"])
 def get_token(message: str = None):
+    """
+    Route handler for the '/get_token' endpoint.
+    Handles GET and POST requests to retrieve a token for the GIS.
 
+    Args:
+        message (str, optional): A message to display on the page. Defaults to None.
+
+    Returns:
+        Response: A redirect response to the 'index' endpoint or a rendered template for 'get_token.html'.
+    """
+
+    # Create a token form
     token_form = TokenForm()
+
+    # Handle the POST request
     if token_form.validate_on_submit():
+
+        # Obtain and store the token and URL in the session
         session["token"] = GIS(
             username=token_form.username.data,
             password=token_form.password.data,
@@ -152,6 +195,12 @@ def get_token(message: str = None):
 
 @app.route("/logout")
 def logout():
+    """
+    Logs out the user by removing the session token and URL.
+
+    Returns:
+        A redirect response to the "get_token" route with a logout message.
+    """
     session.pop("token", None)
     session.pop("url", None)
     return redirect(url_for("get_token", message="You have been logged out."))
@@ -159,6 +208,30 @@ def logout():
 
 @app.route("/api/data")
 def data():
+    """
+    Retrieves data based on specified search parameters.
+
+    Args:
+        search (str): The search string to append to the existing search.
+        owner (str): The owner of the content.
+        group (str): The group of the content.
+        tag (str): The tag associated with the content.
+        content_status (str): The status of the content.
+        created_from (str): The starting date for content creation.
+        created_to (str): The ending date for content creation.
+        modified_from (str): The starting date for content modification.
+        modified_to (str): The ending date for content modification.
+        output_path (str): The path to save the output.
+
+    Returns:
+        dict: A dictionary containing the retrieved data.
+
+    Raises:
+        None
+
+    """
+
+    # Get the search parameters
     append_search_string = request.args.get("search", None, type=str)
     owner = request.args.get("owner", None, type=str)
     group = request.args.get("group", None, type=str)
@@ -183,6 +256,7 @@ def data():
     if modified_to:
         modified_to = datetime.strptime(modified_to, "%Y-%m-%d")
 
+    # Get the search results
     results = items_search(
         gis=GIS(url=session["url"], token=session["token"]),
         append_search_string=append_search_string,
@@ -197,7 +271,7 @@ def data():
         output_path=output_path,
     )
 
-    # response
+    # Return the results
     return {
         "data": results["results"],
     }

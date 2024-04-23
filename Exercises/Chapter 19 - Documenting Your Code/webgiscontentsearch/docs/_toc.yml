@@ -1,0 +1,14 @@
+format: jb-book
+root: index.md
+parts:
+    - caption: Getting Started
+      chapters:
+          - file: getting_started/index.md
+            sections:
+                - file: getting_started/introduction.ipynb
+
+    - caption: Reference
+      chapters:
+          - file: reference/index.md
+            sections:
+                - file: reference/gis_inventory.rst

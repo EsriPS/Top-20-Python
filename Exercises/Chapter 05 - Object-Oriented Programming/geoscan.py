@@ -1,4 +1,3 @@
-import csv
 import os
 from dataclasses import dataclass
 
@@ -62,13 +61,6 @@ class APRXMap:
     name: str
     layers: list[APRXLayer]
 
-
-@dataclass
-class APRX(File):
-    name: str
-    maps: list[APRXMap]
-
-
 @dataclass
 class GeodatabaseData:
     name: str
@@ -82,6 +74,10 @@ class Dataset:
     name: str
     data: list[GeodatabaseData]
 
+@dataclass
+class APRX(File):
+    name: str
+    maps: list[APRXMap]
 
 @dataclass
 class FileGeodatabase(File):
@@ -96,6 +92,14 @@ class Shapefile(File):
 
 
 class DirectoryScanner:
+    """A class for scanning directories and processing files and directories.
+
+        Args:
+        path (str): The path to the directory to be scanned.
+        recursive (bool, optional): Flag indicating whether to scan subdirectories recursively. Defaults to True.
+
+    """
+    
     def __init__(self, path: str, recursive: bool = True):
         self.path = path
         self.recursive = recursive
@@ -128,10 +132,26 @@ class DirectoryScanner:
     def scan(
         self,
         path: str = None,
-        recursive=None,
+        recursive: bool = None,
         _results: list = None,
         _scanned_paths: list = None,
     ):
+        """
+        Scans the specified directory and its subdirectories for files and directories.
+
+        Args:
+            path (str, optional): The path of the directory to scan. If not provided, the default path will be used.
+            _results (list, optional): A list to store the scan results. If not provided, a new list will be created.
+            _scanned_paths (list, optional): A list to keep track of the scanned paths. If not provided, a new list will be created.
+            recursive (bool, optional): Flag indicating whether to scan subdirectories recursively. If not provided, the value specified during object initialization will be used.
+
+        Returns:
+            list: A list of scan results.
+
+        Raises:
+            FileNotFoundError: If the specified directory is not found.
+            PermissionError: If the user does not have permission to access the directory.
+        """
         if _results is None:
             _results = []
 
@@ -140,8 +160,10 @@ class DirectoryScanner:
 
         if path is None:
             path = self.path
+
         if recursive is None:
             recursive = self.recursive
+
         try:
             print(f"Scanning {path}")
             for entry in os.scandir(path):
@@ -170,6 +192,18 @@ class DirectoryScanner:
         return _results
 
     def parse_result(self, entry: os.DirEntry):
+        """
+        Parses the given `entry` and returns a `File` or `Directory` object based on the type of entry.
+
+        Args:
+            entry (os.DirEntry): The directory entry to parse.
+
+        Returns:
+            File or Directory: The parsed object representing the entry.
+
+        Raises:
+            ValueError: If the entry is neither a file nor a directory.
+        """
         if entry.is_file():
             return File(
                 name=entry.name,
@@ -206,18 +240,14 @@ class GeoScanner(DirectoryScanner):
     def __init__(self, path: str, recursive: bool = True):
         super().__init__(path, recursive)
 
-    def geoscan(self, path: str = None, recursive=None):
+    def geoscan(self):
         """Scans the directory for geospatial files and processes them.
-
-        Args:
-            path (str, optional): The path to the directory to be scanned. If not provided, the path specified during object initialization will be used. Defaults to None.
-            recursive (bool, optional): Flag indicating whether to scan subdirectories recursively. If not provided, the value specified during object initialization will be used. Defaults to None.
 
         Returns:
             list: A list of processed geospatial files.
 
         """
-        scan_results = self.scan(path, recursive)
+        scan_results = self.scan(self.path, self.recursive)
         geoscan_results = []
         for result in scan_results:
             if isinstance(result, File):
@@ -260,12 +290,14 @@ class GeoScanner(DirectoryScanner):
             and any([file.name.endswith(ext) for ext in SHAPEFILE_EXTS])
         ]
 
-        shapefile_size = sum([file.size for file in related_files])
+        size = sum([file.size for file in related_files])
+        features = int(str(arcpy.management.GetCount(file.path)))
+        fields = [field.name for field in arcpy.ListFields(file.path)]
 
         info = file.__dict__ | {
-            "size": shapefile_size,
-            "features": int(str(arcpy.management.GetCount(file.path))),
-            "fields": [field.name for field in arcpy.ListFields(file.path)],
+            "size": size,
+            "features": features,
+            "fields": fields,
         }
 
         return Shapefile(**info)

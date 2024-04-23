@@ -1,0 +1,29 @@
+[project]
+name = "webgiscontentsearch"
+version = "0.1"
+dependencies = ["arcgis>2.0"]
+
+requires-python = ">=3.8"
+authors = [{ name = "A. GeoGeek", email = "gis-is-fun@example.com" }]
+maintainers = [{ name = "A. GeoGeek", email = "gis-is-fun@example.com" }]
+description = "Search for and filter content in your ArcGIS Portal or ArcGIS Online organization."
+readme = "README.md"
+keywords = ["gis", "search", "gis_inventory"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+]
+
+[project.optional-dependencies]
+app = ["flask>=3.0", "bootstrap-flask", "WTForms", "Flask-WTF"]
+
+[project.urls]
+Homepage = "https://example.com"
+Repository = "https://github.com/EsriPS/Top-20-Python"
+
+[project.scripts]
+webgiscontentsearch = "webgiscontentsearch:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
