@@ -1,0 +1,5 @@
+﻿<?xml version="1.0" encoding="utf-8"?><messages><msg code="0" type="2">Start Time: Thursday, April 18, 2024 6:44:29 AM</msg><msg code="-2147467259" type="100">  File "C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 13 - Geoprocessing and Toolboxes\Geoprocessing_and_Toolboxes.atbx\devtool.tool\tool.script.execute.py", line 1
+    C:\Users\dav11274\AppData\Local\Temp\ArcGISProTemp6936\tmpA5A8.py
+       ^
+SyntaxError: unexpected character after line continuation character
+</msg><msg code="0" type="0">Failed script dev tool...</msg><msg code="-2147467259" type="100">Failed to execute (devtool).</msg><msg code="0" type="3">Failed at Thursday, April 18, 2024 6:44:29 AM (Elapsed Time: 0.03 seconds)</msg></messages>
