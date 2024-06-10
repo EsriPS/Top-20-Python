@@ -41,7 +41,6 @@ import arcpy
 import sqlite3
 import pandas as pd
 import os
-import csv
 import arcgis
 
 sl_db = arcpy.management.CreateSQLiteDatabase(
@@ -116,7 +115,7 @@ csv_path = r"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 12
 
 df_block_groups = pd.read_csv(
     r"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 12 - Interacting with Databases\block_groups.csv"
-    )
+    dtypes={'GEOID':str})
 
 df_block_groups['county_geoid'] = df_block_groups['GEOID'].astype(str).str[:4].str.zfill(5)
 df_block_groups.to_sql("BlockGroups", sl_conn, if_exists='replace', index=False)
@@ -141,7 +140,7 @@ pd.read_sql(sql, sl_conn)
 
 
 
-sql = """
+sql_summary_view = """
 CREATE VIEW CountyStats AS
 SELECT
     county_geoid,
@@ -153,7 +152,7 @@ GROUP BY
     county_geoid
 
 """
-sl_cursor.execute(sql)
+sl_cursor.execute(sql_summary_view)
 
 
 pd.read_sql("select * from CountyStats", sl_conn)
