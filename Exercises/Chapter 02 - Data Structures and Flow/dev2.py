@@ -283,3 +283,25 @@ data['features'][0]
 first_feature = data['features'][0]
 
 first_feature['properties']['service_name'] = 'new value'
+
+features = data['features']
+
+# reset the dictionary - just in case
+sn_count_dict = {}
+
+# iterate through each feature
+for feature in features:
+    
+    # get the service name
+    service_name = feature['properties']['service_name']
+    
+    # test to see if the service_name is in the dictionary
+    if service_name in sn_count_dict:
+        # add to the number if it's already in there
+        sn_count_dict[service_name] = sn_count_dict[service_name] + 1
+    else:
+        # add a new key to the dictionary if not already there
+        sn_count_dict[service_name] =  1
+
+# sort the dictionary by value
+sorted_sn_count_dict = {k: v for k, v in sorted(sn_count_dict.items(), key=lambda item: item[1], reverse=True)}
