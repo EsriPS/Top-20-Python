@@ -38,6 +38,86 @@ dc_bounds_lyr = dc_bounds_item.layers[0]
 
 
 
+df_dc_bounds = dc_bounds_lyr.query(as_df=True)
+
+envelope = arcgis.geometry.Envelope((df_dc_bounds.spatial.bbox))
+
+
+df = naip_lyr.query(
+    "AcquisitionDate IS NOT NULL",
+    geometry_filter = arcgis.geometry.filters.intersects(
+        geometry=envelope, 
+        sr=envelope.spatial_reference),
+    as_df=True,
+    # return_geometry=False
+    )
+df
+
+import pandas as pd
+
+df.AcquisitionDate.apply(lambda x: int(time.mktime(pd.to_datetime(x, unit='ms').timetuple())*1000))
+
+unique_dates = sorted(list(set([f.attributes['AcquisitionDate'] for f in fset.features])))
+
+# create a list of datetime objects in utc
+dates_dt = [datetime.datetime.fromtimestamp(d/1000) for d in unique_dates]
+
+
+
+
+wkid = dc_bounds_lyr.properties.extent['spatialReference']['wkid']
+wkid
+
+xmax = dc_bounds_lyr.properties.extent['xmax']
+xmin = dc_bounds_lyr.properties.extent['xmin']
+ymax = dc_bounds_lyr.properties.extent['ymax']
+ymin = dc_bounds_lyr.properties.extent['ymin']
+
+
+dc_bounds_flayer = arcpy.MakeFeatureLayer_management(dc_bounds_lyr.url, "dc_bounds")
+desc = arcpy.Describe(dc_bounds_flayer) 
+spref = desc.spatialReference
+metersPerUnit = spref.metersPerUnit
+data_type = desc.dataType 
+
+
+# Calculate height and width of output image
+naip_res = 1 # NAIP resolution in 1 meter
+
+w = int((xmax - xmin) * metersPerUnit / naip_res)
+h = int((ymax - ymin) * metersPerUnit / naip_res)
+
+
+
+naip_lyr.export_image(
+    bbox=arcgis.geometry.Envelope(dc_bounds_lyr.properties.extent),
+    time = 1437548400000,
+    export_format = "tiff",
+    rendering_rule = {'rasterFunction': "NaturalColor"},
+    size=[w, h],
+    f = "image",
+    save_folder = r".",
+    save_file = rf"NaipT1est__{w}_{h}.tif",
+    image_sr = wkid,
+    bbox_sr = wkid,
+    no_data = 0,
+    )
+
+
+# summarize the counts of pixels for each class and do some math
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Get metadata from the AOI layer to pass to the export function
 
 wkid = dc_bounds_lyr.properties.extent['spatialReference']['wkid']
@@ -106,6 +186,10 @@ fset = naip_lyr.query(
         geometry={"x":xmin, "y":ymin, "spatialReference":sr}, 
         sr=sr))
 
+dates = sorted([f.attributes['AcquisitionDate'] for f in fset.features])
+
+#get datetime objects for dates
+dates_dt = [datetime.datetime.fromtimestamp(d/1000) for d in dates]
 
 wkid = 3857
 
@@ -114,10 +198,12 @@ xmin = extent[0]
 ymin = extent[1]
 xmax = extent[2]
 ymax = extent[3]
-envelope = arcgis.geometry.Envelope({
+envelope = arcgis.geometry.Envelope(
+    {
+
     "xmin":extent[0],
      "ymin": extent[1], 
-     "xmax":    extent[2], 
+     "xmax": extent[2], 
      "ymax": extent[3],
      "spatialReference":wkid})
 
@@ -137,13 +223,13 @@ h = int((ymax - ymin) * metersPerUnit / naip_res)
 ud = unique_dates[-3]
 naip_lyr.export_image(
     bbox=envelope,
-    time = filter_date_unix,
+    time = ud,
     export_format = "tiff",
     rendering_rule = {'rasterFunction': rendering},
     size=[w, h],
     f = "image",
     save_folder = r".",
-    save_file = f"NaipTest_{ud}_{rendering}_{w}_{h}.tif",
+    save_file = rf"C:\Users\dav11274\Desktop\github\Top-20-Python\Exercises\Chapter 14 - Rasters and GeoAI\NaipT1est_{ud}_{rendering}_{w}_{h}.tif",
     image_sr = wkid,
     bbox_sr = wkid,
     no_data = 0,
